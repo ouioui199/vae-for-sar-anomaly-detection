@@ -66,7 +66,7 @@ HvVh polarization should be pre-computed from Hv and Vh, with HvVh = (Hv + Vh) /
 
 ## Training
 First, you need to train the despeckler. We use [MERLIN](https://ieeexplore.ieee.org/document/9617648) algorithms.
-The code will outputs and save checkpoints to ```weights_storage/version_X/despeckler/*.ckpt```. Remember to change 'X' to your version. In the shell file has already been programmed to run sequentially 4 channels of a full polarization SAR image. If you wish to run it only on certain channel, comment the concerned code.
+The code will outputs and save checkpoints to ```weights_storage/version_your_version_here/despeckler/*.ckpt```. Remember to rename 'your_version_here'. In the shell file has already been programmed to run sequentially 4 channels of a full polarization SAR image. If you wish to run it only on certain channel, comment the concerned code.
 ```
 bash train_despeckler.sh > train_despeckler_log.txt 2>&1
 ```
