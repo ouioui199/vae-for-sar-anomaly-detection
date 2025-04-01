@@ -1,0 +1,11 @@
+__pycache__/
+.vscode
+*.code-workspace
+
+*.ipynb
+
+data_despeckled/
+training_logs/
+weights_storage/
+
+*.txt
