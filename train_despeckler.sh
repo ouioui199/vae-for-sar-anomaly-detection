@@ -1,4 +1,4 @@
-# Train despeckler ubuntu pc script
+# Train despeckler
 cleanup() {
     # Add your cleanup code here
     echo "Script interrupted, cleaning up..."
@@ -10,12 +10,12 @@ cleanup() {
 # Set the trap
 trap cleanup SIGINT SIGTERM
 
-VERSION="your_version_here"
-DATABAND="your_data_band_here"
-EPOCHS="desired_epochs_here"
-STRIDE="desired_stride_here"
-LOGDIR=training_logs
-DATADIR=/your/data/directory/data_folder1/
+VERSION="your-choice"
+DATABAND="your-choice"
+EPOCHS="your-choice"
+STRIDE="your-choice"
+LOGDIR=training_logs # do not change this unless you know what you are doing
+DATADIR=/your/path/to/data
 
 python scripts/train_despeckler.py \
     --version $VERSION \
