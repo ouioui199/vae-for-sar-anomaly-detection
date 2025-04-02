@@ -84,8 +84,7 @@ def local_reed_xiaoli_detector(
         return np.nan * np.ones_like(cov)     
     
 
-def compute_reed_xiaoli_map(opt: Namespace) -> None:
-    datadir = Path(f'{opt.datadir}/{opt.data_band}_band/predict/slc')
+def compute_reed_xiaoli_map(opt: Namespace, datadir: Path) -> None:
     paths = glob.glob(f'{datadir}/*.npy')
     path_rx = [p for p in paths if ('Combine' in p) and ('crop' in p)]
     if not path_rx:
@@ -113,7 +112,9 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser = ArgumentParsing(parser)
     opt = parser.parser.parse_args()
-    #NOTE: for each file having 4 polarization channels, we need to manually combine them into a single file having 'Combine' in its name.
-    # To do so, run the combine.ipynb notebook. Change the directory if needed.
-    # These RX files must be computed only one time, I don't want to put energy into thinking how to do this properly...
-    compute_reed_xiaoli_map(opt)
+
+    datadir = Path(f'{opt.datadir}/{opt.data_band}_band/train/slc')
+    compute_reed_xiaoli_map(opt, datadir)
+
+    datadir = Path(f'{opt.datadir}/{opt.data_band}_band/predict/slc')
+    compute_reed_xiaoli_map(opt, datadir)
