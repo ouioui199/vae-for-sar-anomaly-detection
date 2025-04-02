@@ -10,7 +10,7 @@ from torch import Tensor
 from datasets.base_dataset import ReconstructorFile, DespecklerFile, ReconstructorDataset, DespecklerDataset
 from datasets.utils import symetrisation_patch
 
-#TODO a voir si c'est important de préciser phase ou pas dans AAETrain, AAEValid
+
 class ReconstructorTrainFile(ReconstructorFile):
     def __init__(
         self, 

@@ -106,7 +106,6 @@ def symetrisation_patch(real_part: np.ndarray, imag_part: np.ndarray) -> Sequenc
         shift_range = shift_range_2 / q.shape[0]
 
     Sf = np.roll(S2, int(shift_range * q.shape[0]), axis=1)
-    # plot_im(np.abs(Sf),title='sym')
     ima2 = np.fft.ifft2(np.fft.ifftshift(Sf))
-    # disp_sar(np.abs(ima2))
+
     return ima2.real, ima2.imag

@@ -32,7 +32,6 @@ class BaseModel(LightningModule, ABC):
         return name, ext
     
     def log_image(self, label: str, data: Tensor) -> None:
-        # assert logger_id < len(self.loggers), "Invalid logger id"
         grid = make_grid(data)
         self.loggers[0].experiment.add_image(
             label, grid, self.current_epoch
@@ -66,11 +65,6 @@ class BaseModel(LightningModule, ABC):
                 
                 anomaly_map[i, j] = torch.linalg.norm(pred_patch_cov - input_patch_cov, ord='fro') ** 2
         
-        # anomaly_map = torch.log(anomaly_map + 1e-10)
-        
-        # min_val = anomaly_map.min()
-        # max_val = anomaly_map.max()
-        # return (anomaly_map - min_val) / (max_val - min_val)
         return anomaly_map
 
     

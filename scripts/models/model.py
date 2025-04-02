@@ -106,10 +106,10 @@ class AAEModule(BaseModel):
         encoder_optimizer.step()
         decoder_optimizer.step()
         
-        # if batch_idx % 1000 == 0:
-        #     self.log_image("Input", (image * 255).to(torch.uint8))
-        #     self.log_image("Reconstruction", (reconstruction * 255).to(torch.uint8))
-        #     self.log_image("Difference", ((reconstruction - image) * 255).to(torch.uint8))
+        if batch_idx % 1000 == 0:
+            self.log_image("Input", (image * 255).to(torch.uint8))
+            self.log_image("Reconstruction", (reconstruction * 255).to(torch.uint8))
+            self.log_image("Difference", ((reconstruction - image) * 255).to(torch.uint8))
 
         # Discriminator
         self.set_requires_grad(self.discriminator, requires_grad=True)
@@ -301,13 +301,10 @@ class VAEModule(BaseModel):
         super().__init__(opt, image_out_dir)
 
         self.model = VanillaVAE2(in_channels=opt.recon_in_channels, latent_dim=opt.recon_latent_size, input_size=opt.recon_patch_size)
-        self.reconstruction_loss = MSELoss() # HuberLoss()
-        # self.rec_ = L1Loss(reduction='none')
+        self.reconstruction_loss = MSELoss()
         self.kld_loss = kullback_leibler_divergence_loss
-        # self.ssim_loss = SSIMLoss()
         
         self.train_step_outputs = {}
-        # self.train_rec_hist = []
         self.valid_step_outputs = {}
 
         self.metrics = MetricCollection({
@@ -329,19 +326,6 @@ class VAEModule(BaseModel):
         # Warmup
         if self.current_epoch < self.opt.recon_beta_warmup_epochs:
             return self.opt.recon_beta_start
-        
-        # if self.beta_warmup_type == 'linear':
-        # Linear annealing
-        # beta = min(
-        #     beta_end, 
-        #     beta_start + (beta_end - beta_start) * (self.global_step / beta_n_iterations)
-        # )
-        # elif self.beta_warmup_type == 'exponential':
-        #     # Exponential annealing
-        #     alpha = 10  # Controls steepness
-        #     progress = min(1.0, self.global_step / self.beta_n_iterations)
-        #     beta = self.beta_end * (1 - np.exp(-alpha * progress))
-        # elif self.beta_warmup_type == 'cyclical':
 
         # Cyclical annealing
         cycle_size = self.total_beta_iterations // 4
@@ -371,22 +355,14 @@ class VAEModule(BaseModel):
         reconstruction, mu, log_var = self(image)
         beta = self.get_current_beta()
         reconstruction_loss = self.reconstruction_loss(reconstruction, image)
-        # similarity_loss = self.ssim_loss(reconstruction, image)
         kld_loss = self.kld_loss(mu, log_var, 1e-4)
-        # loss = reconstruction_loss + similarity_loss + beta * kld_loss
         loss = reconstruction_loss + beta * kld_loss
         metrics = self.metrics(reconstruction.detach(), image)
 
-        # if self.global_step % (self.trainer.num_training_batches * 25) == 0:
-        #     self.log_image("Input", (image * 255).to(torch.uint8))
-        #     self.log_image("Reconstruction", (reconstruction * 255).to(torch.uint8))
-        #     self.log_image("Difference", ((reconstruction - image) * 255).to(torch.uint8))
-        
-        # if batch_idx == self.trainer.num_training_batches - 1:
-        #     rec_ = self.rec_(reconstruction.detach(), image).flatten().cpu().numpy()
-        #     hist = np.histogram(rec_, bins=100)[0]
-        #     self.train_rec_hist.append(hist)
-        #     self.logger.experiment.add_histogram('Reconstruction loss histogram', rec_, self.current_epoch)
+        if self.global_step % (self.trainer.num_training_batches * 25) == 0:
+            self.log_image("Input", (image * 255).to(torch.uint8))
+            self.log_image("Reconstruction", (reconstruction * 255).to(torch.uint8))
+            self.log_image("Difference", ((reconstruction - image) * 255).to(torch.uint8))
 
         if not self.train_step_outputs:
             self.train_step_outputs = {
@@ -517,87 +493,22 @@ class VAEModule(BaseModel):
             tb_logger.add_scalar(f'Metrics/{k}'.replace('val_', ''), v, self.current_epoch)
 
         self.valid_step_outputs.clear()
-
-    # def on_fit_end(self):
-    #     hist_mean = np.mean(self.train_rec_hist, axis=0)
-    #     plt.figure(figsize=(20, 12))
-    #     plt.plot(hist_mean)
-    #     plt.xlabel('Bin value')
-    #     plt.ylabel('Count')
-    #     plt.title('Mean reconstruction loss histogram over epochs')
-    #     plt.savefig(Path(f'{self.image_save_dir}/mean_rec_hist.png'))
-    #     plt.close()
-
-    #     colormap = cm.get_cmap('viridis')
-    #     plt.figure(figsize=(20, 12))
-    #     for i, hist in enumerate(self.train_rec_hist):
-    #         color = colormap(i / len(self.train_rec_hist))
-    #         plt.plot(hist, color=color, linewidth=0.5, alpha=0.7)
-
-    #     plt.xlabel('Bin value')
-    #     plt.ylabel('Count')
-    #     plt.title('Histogram of reconstruction loss')
-
-    #     sm = cm.ScalarMappable(cmap=colormap)
-    #     sm.set_array([])
-    #     cbar = plt.colorbar(sm, ax=plt.gca())
-    #     cbar.set_label('Epochs')
-
-    #     plt.tight_layout()
-    #     plt.savefig(Path(f'{self.image_save_dir}/rec_hist.png'))
-    #     plt.close()
-
-    #     super().on_fit_end()
-    
-    # def on_predict_start(self):
-    #     self.opt.recon_stride = 1
     
     def predict_step(self, batch: Dict[str, Tensor | str], batch_idx: int) -> None:
         pred, input = self._val_step(batch, 0)
-        # min, max = batch['min'][0], batch['max'][0]
-        # denorm = self.denorm(min, max)
-        # pred = denorm(pred)
-        # input = denorm(input)
         
         anomaly_map = self.create_anomaly_map(pred, input)
         anomaly_map = anomaly_map.cpu().data.numpy()
         pred = pred.cpu().data.numpy()
-        # input = input.cpu().data.numpy()
-
-        # hist = np.histogram(pred, bins=1000)[0]
 
         name, ext = self.get_name_ext(batch['filepath'][0], add_epoch=False)
-        # np.save(Path(f'{self.image_save_dir}/{name}{ext}'), pred)
-        # np.save(Path(f'{self.image_save_dir}/diff_{name}{ext}'), input - pred)
-
-        # min_val, max_val = np.percentile(anomaly_map, (98, 100))
-        # anomaly_map[anomaly_map < min_val] = 0
         np.save(Path(f'{self.image_save_dir}/pred_{name}{ext}'), pred)
         np.save(Path(f'{self.image_save_dir}/anomaly_{name}{ext}'), anomaly_map)
         anomaly_map = Image.fromarray((anomaly_map * 255).astype(np.uint8))
         anomaly_map.save(Path(f'{self.image_save_dir}/anomaly_{name}.png'))
-
-        # image = self.get_three_channels(input)
-        # image = Image.fromarray(image, mode='RGB')
-        # image.save(Path(f'{self.image_save_dir}/image_{name}.png'))
-
-        # predict = self.get_three_channels(pred)
-        # predict = Image.fromarray(predict, mode='RGB')
-        # predict.save(Path(f'{self.image_save_dir}/predict_{name}.png'))
-
-        # diff = self.get_three_channels(input - pred)
-        # diff = Image.fromarray(diff, mode='RGB')
-        # diff.save(Path(f'{self.image_save_dir}/diff_{name}.png'))
         
-        del pred
+        del pred, anomaly_map, input
         torch.cuda.empty_cache()
-
-    @staticmethod
-    def get_three_channels(input: np.ndarray) -> np.ndarray:
-        out = np.stack([input[0], input[1], input[3]], axis=0)
-        out = equalize(out.transpose(1, 2, 0), plower=0, pupper=100)
-
-        return out
 
 
 class MERLINModule(BaseModel):

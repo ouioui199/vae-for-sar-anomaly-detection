@@ -2,7 +2,6 @@ from typing import List, Sequence
 
 import torch
 from torch import nn, Tensor
-from torchcvnn import nn as c_nn
 
 from models.base_model import BaseVAE
 
@@ -107,10 +106,6 @@ class Discriminator(nn.Sequential):
 class ConvLRVAE(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, residual: bool = False) -> None:
         super().__init__()
-        # self.residual = residual
-        # self.skip = nn.Conv2d(in_channels, out_channels, 1) if in_channels != out_channels else nn.Identity()
-        # self.up = nn.UpsamplingNearest2d(scale_factor=2)
-            # c_nn.UpsampleFFT(scale_factor=2),
         self.conv_lr = nn.Sequential(
             nn.UpsamplingNearest2d(scale_factor=2),
             nn.Conv2d(in_channels, out_channels, 3, padding=1),
@@ -120,10 +115,6 @@ class ConvLRVAE(nn.Module):
         )
 
     def forward(self, x: Tensor) -> Tensor:
-        # x = self.up(x)
-        # if self.residual:
-        #     residual = self.skip(x)
-        #     return self.conv_lr(x) + residual
         return self.conv_lr(x)
 
 
@@ -145,7 +136,6 @@ class VanillaVAE(BaseVAE):
             modules.append(
                 nn.Sequential(
                     nn.Conv2d(in_channels, h_dim, 3, stride=2, padding=1),
-                    # nn.BatchNorm2d(h_dim),
                     nn.LeakyReLU())
             )
             in_channels = h_dim
@@ -171,7 +161,6 @@ class VanillaVAE(BaseVAE):
         self.final_layer = nn.Sequential(
             nn.UpsamplingNearest2d(scale_factor=2),
             nn.Conv2d(hidden_dims[-1], hidden_dims[-1], 3, padding=1),
-            # nn.BatchNorm2d(hidden_dims[-1]),
             nn.LeakyReLU(),
             nn.Conv2d(hidden_dims[-1], in_channels_, 3, padding=1),
             nn.Tanh()
