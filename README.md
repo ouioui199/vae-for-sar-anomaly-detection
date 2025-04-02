@@ -94,10 +94,6 @@ Finally, run
 bash predict_despeckler.sh > pred_recon_log.txt 2>&1
 ```
 to perform prediction. The code will perform reconstruction from a despeckled image, and also anomaly map computed with Frobenius norm. 
-If you decide to run the **Reconstructor** on specific data folder, run
-```
-python train_reconstructor.py --version X --aae_in_channels X --aae_epochs X --aae_datadir "directory"
-```
 
 ## Tensorboard
 During training, it is possible to visualize running loss and metrics. To do so, run the command below in your terminal from the project directory:
