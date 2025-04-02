@@ -10,7 +10,7 @@ In this paper, we propose an unsupervised learning approach for anomaly detectio
 Anomaly Detection in SAR imaging with Adversarial AutoEncoder, Variational AutoEncoder and Reed-Xiaoli Detector.
 To begin, clone the repository with ssh or https:
 
-```
+```shell
 git clone git@gitlab-research.centralesupelec.fr:anomaly-detection-huy/aae_huy.git
 git clone https://gitlab-research.centralesupelec.fr/anomaly-detection-huy/aae_huy.git
 ```
@@ -20,12 +20,12 @@ Create a virtual environment with miniconda or other tools.
 Details to install miniconda could be found [here](https://www.anaconda.com/docs/getting-started/miniconda/install).
 
 ### Install requirements
-```
+```shell
 pip install -r requirements.txt
 ```
 
 Install torchcvnn latest developments and install it as a library
-```
+```shell
 git clone --single-branch --branch dev_transforms https://github.com/ouioui199/torchcvnn.git
 pip install -e torchcvnn
 ```
@@ -64,39 +64,45 @@ etc.
 ```
 HvVh polarization should be pre-computed from Hv and Vh, with HvVh = (Hv + Vh) / 2. Normalization values will be computed automatically during the data processing, you don't need to do anything.
 
+## Data preparation
+Let's say you wish to train with data stored in ```DATADIR=/your/data/folder/data_folder1```. The code will operate as below:
+
+![Workflow](images/Workflow.png)
+
+Anomaly map computed with the Reed-Xiaoli detector can be computed with the command below. Note that this code works with 4 polarization SAR images.
+```python
+python compute_RX.py --version 0 --data_band your-choice --datadir /your/data/folder/data_folder1 --rx_box_car_size your-choice --rx_exclusion_window_size your-choice
+```
+
 ## Training
 First, you need to train the despeckler. We use [MERLIN](https://ieeexplore.ieee.org/document/9617648) algorithms.
-The code will outputs and save checkpoints to ```weights_storage/version_your_version_here/despeckler/*.ckpt```. Remember to rename 'your_version_here'. In the shell file has already been programmed to run sequentially 4 channels of a full polarization SAR image. If you wish to run it only on certain channel, comment the concerned code.
-```
+The code will outputs and save checkpoints to ```weights_storage/version_your-version-here/despeckler/checkpoints-name.ckpt```. Remember to rename 'your_version_here'. In the shell file has already been programmed to run sequentially 4 channels of a full polarization SAR image. If you wish to run it only on certain channel, comment the concerned code. Codes are run via a shell file. Set the parameters before runs.
+```shell
 bash train_despeckler.sh > train_despeckler_log.txt 2>&1
 ```
 The despeckler training has now finished, you must compute predictions to get despeckled SAR images.
-```
+```shell
 bash predict_despeckler.sh > pred_despeckler_log.txt 2>&1
 ```
-The code will predict sequentially on 4 channels of a full polarization SAR image, and store automatically despeckled images into specific folder. For example, if ```DATADIR=/your/data/directory/data_folder1/```, despeckled will be in ```/your/data/directory/data_folder1/train/despeckled``` folder.
 
-#TODO here. Need to recheck how to store images and how images are moved in between. tensorboard
-
- It will need a despeckled image, so you need to precise arguments ```--despeckler_predict --despeckler_ckpt_path``` in the command. The code will run prediction and store the despeckled image into the **data** folder. Remember to change 'X' to your arguments.
+Once having despeckled images, to train the reconstruction network (VAE, AAE), run
+```shell
+bash train_reconstructor.sh > train_recon_log.txt 2>&1
 ```
-python train_reconstructor.py --version X --aae_in_channels X --aae_epochs X --despeckler_predict --despeckler_ckpt_path <your_despeckler_ckpt_path> --despeckler_predict_datadir "directory1, directory2, etc"
+Finally, run
+```bash
+bash predict_despeckler.sh > pred_recon_log.txt 2>&1
 ```
-
-For future runs, if you decide to keep using the same despeckled data, remove the two last arguments.
-```
-python train_reconstructor.py --version X --aae_in_channels X --aae_epochs X
-```
-
+to perform prediction. The code will perform reconstruction from a despeckled image, and also anomaly map computed with Frobenius norm. 
 If you decide to run the **Reconstructor** on specific data folder, run
 ```
 python train_reconstructor.py --version X --aae_in_channels X --aae_epochs X --aae_datadir "directory"
 ```
-The ```--aae_datadir``` argument does not accept multiple entries, so you need to store all your data into the desired folder.
 
-To see all possible arguments, run
-```
-python train_despeckler.py --help
+## Tensorboard
+During training, it is possible to visualize running loss and metrics. To do so, run the command below in your terminal from the project directory:
+```python
+tensorboard --logdir=training_logs/version_your-choice
 ```
 
 ## Folder structure
