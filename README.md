@@ -11,8 +11,8 @@ Anomaly Detection in SAR imaging with Adversarial AutoEncoder, Variational AutoE
 To begin, clone the repository with ssh or https:
 
 ```shell
-git clone git@gitlab-research.centralesupelec.fr:anomaly-detection-huy/aae_huy.git
-git clone https://gitlab-research.centralesupelec.fr/anomaly-detection-huy/aae_huy.git
+git clone git@github.com:ouioui199/vae-for-sar-anomaly-detection.git
+git clone https://github.com/ouioui199/vae-for-sar-anomaly-detection.git
 ```
 
 ### Environment
