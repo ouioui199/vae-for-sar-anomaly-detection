@@ -102,7 +102,7 @@ tensorboard --logdir=training_logs/version_your-choice
 ```
 
 ## Folder structure
-Once start running the code, the folder will be organized as below. After cloning the code, create environments, install dependencies, you can start immediately the training. No further actions are required. All folders will be created automatically.
+Once start running the code, the project folder will be organized as below. After cloning the code, create environments, install dependencies and prepare the data folder, you can start immediately the training. No further actions are required. All folders will be created automatically.
 ```
 |- images/
 |- scripts/
