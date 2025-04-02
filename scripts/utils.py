@@ -149,7 +149,7 @@ class ArgumentParsing:
 
     def train_reconstructor_args(self, group: ArgumentParser) -> None:
         group.add_argument('--recon_visualize', action='store_true')
-        group.add_argument('--recon_model', required=True, type=str, choices=['aae', 'vae'])
+        group.add_argument('--recon_model', required=True, type=str, choices=['aae', 'vae'], default='vae')
         group.add_argument('--recon_train_slc', action='store_true')
         group.add_argument('--recon_patch_size', type=int, default=32)
         group.add_argument('--recon_stride', type=int, default=16)
